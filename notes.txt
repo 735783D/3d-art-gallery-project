@@ -1,0 +1,30 @@
+# Installs:
+npm create vite@latest
+npm install
+npm install three
+npm install gh-pages --save-dev
+
+# package.json addendums
+"scripts": {
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d dist"
+},
+
+...
+
+"repository": {
+  "type": "git",
+  "url": "git+https://github.com/yourusername/yourrepository.git"
+}
+
+# vite.config.js addendums:
+export default defineConfig({
+  base: "/repo/",  // 3d-art-gallery-project in this case
+  assetsInclude: ['**/*.glb']
+})
+
+# Deploy to gh-pages to determine if it works or not
+npm run deploy
+
+
+Walkthrough video: https://www.youtube.com/watch?v=_AUAXlMBXyc 1:57:12
