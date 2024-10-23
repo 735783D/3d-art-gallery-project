@@ -135,7 +135,8 @@ canvas {
   text-align: center;
   font-size: 1.2em;
   border-radius: 0.9em;
-  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.6);
+  box-shadow: 0px 0px 15px rgb(255, 0, 0);
+  background: rgb(255, 255, 255); /* if set with transparency, gallery will show through it */
   overflow: hidden;
 }
 
