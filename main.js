@@ -1,4 +1,5 @@
 import * as THREE from "three";             // import the THREE library
+import { PointerLockControls } from "three-stdlib";
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -30,7 +31,7 @@ sunLight.position.y = 15;
 scene.add(sunLight);
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({color: 'blue'});
+const material = new THREE.MeshBasicMaterial({color: 'black'});
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);    // add the cube to the scene
 
@@ -41,21 +42,36 @@ document.addEventListener('keydown', onKeyDown, false);
 // Texture
 const textureLoader = new THREE.TextureLoader();
 const colorTexture = textureLoader.load( './img/floor.png' );
+const hotTexture = textureLoader.load( './img/TAPE.png' );
 colorTexture.wrapS = colorTexture.wrapT = THREE.RepeatWrapping;
 colorTexture.repeat.set( 10, 10 );
+// hotTexture.wrapS = colorTexture.wrapT = THREE.RepeatWrapping;
+// hotTexture.repeat.set( 10, 10 );
 
 
 // Create the plane
-const planeGeometry = new THREE.PlaneGeometry(45, 45); 
-const planeMaterial = new THREE.MeshStandardMaterial({
+const floorGeometry = new THREE.PlaneGeometry(50, 50); 
+const floorMaterial = new THREE.MeshStandardMaterial({
     map: colorTexture,
     // color: 'black',
     side: THREE.DoubleSide,
 });
-const floorPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+const floorPlane = new THREE.Mesh(floorGeometry, floorMaterial);
 floorPlane.rotation.x = Math.PI / 2;  // rotate the plane by 90 degrees around the y axis (x in Blender)  
 floorPlane.position.y = -Math.PI;   // rotate the plane by 90 degrees around the x axis (z in Blender)
 scene.add(floorPlane);
+//----------------------------------------
+const ceilingGeometry = new THREE.PlaneGeometry(50, 50); 
+const ceilingMaterial = new THREE.MeshStandardMaterial({
+    map: hotTexture,
+    // color: 'red',
+    side: THREE.DoubleSide,
+});
+const ceilingPlane = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
+ceilingPlane.rotation.x = Math.PI / 2;  // rotate the plane by 90 degrees around the y axis (x in Blender)  
+// ceilingPlane.rotation.y = Math.PI;
+ceilingPlane.position.y = 10;   // rotate the plane by 90 degrees around the x axis (z in Blender)
+scene.add(ceilingPlane);
 
 // Create the walls
 const wallGroup = new THREE.Group();
@@ -64,7 +80,7 @@ scene.add(wallGroup);
 // Front wall
 const frontLeftWall = new THREE.Mesh(
     new THREE.BoxGeometry(10, 20, 10),
-    new THREE.MeshBasicMaterial({color: 'green'})
+    new THREE.MeshBasicMaterial({color: 'blue'})
 );
 
 frontLeftWall.position.x = -10;
@@ -72,28 +88,55 @@ frontLeftWall.position.z = -10;
 
 const frontRightWall = new THREE.Mesh(
     new THREE.BoxGeometry(10, 20, 10),
-    new THREE.MeshBasicMaterial({color: 'green'})
+    new THREE.MeshBasicMaterial({color: 'blue'})
 );
 
 frontRightWall.position.x = 10;
 frontRightWall.position.z = -10;
 
-wallGroup.add(frontLeftWall, frontRightWall);
+const rightWall = new THREE.Mesh(
+    new THREE.BoxGeometry(0.001, 20, 50),
+    new THREE.MeshBasicMaterial({color: 'green'})
+);
+
+rightWall.position.x = 25;
+
+const leftWall = new THREE.Mesh(
+    new THREE.BoxGeometry(0.001, 20, 50),
+    new THREE.MeshBasicMaterial({color: 'green'})
+);
+
+leftWall.position.x = -25;
+
+const backWall = new THREE.Mesh(
+    new THREE.BoxGeometry(50, 20, 0.001),
+    new THREE.MeshBasicMaterial({color: 'green'})
+);
+
+backWall.position.z = -25;
+
+wallGroup.add(frontLeftWall, frontRightWall, rightWall, leftWall, backWall);
+
+// Bounding boxes
+for (let i = 0; i < wallGroup.children.length; i++) {
+    wallGroup.children[i].BBox = new THREE.Box3();
+    wallGroup.children[i].BBox.setFromObject(wallGroup.children[i]);
+}
 
 // Functions for keys
 function onKeyDown(event) {
     switch(event.keyCode) {
         case 37: // left arrow
-            camera.translateX(-0.05);
+            camera.translateX(-0.5);
             break;
         case 38: // up arrow
-            camera.translateZ(-0.05);
+            camera.translateZ(-0.5);
             break;
         case 39: // right arrow
-            camera.translateX(0.05);
+            camera.translateX(0.5);
             break;
         case 40: // down arrow
-            camera.translateZ(0.05);
+            camera.translateY(0.5);
             break;
     }
 }
