@@ -40,7 +40,7 @@ document.addEventListener('keydown', onKeyDown, false);
 
 // Texture
 const textureLoader = new THREE.TextureLoader();
-const colorTexture = textureLoader.load( 'img/floor.png' );
+const colorTexture = textureLoader.load( './img/floor.png' );
 colorTexture.wrapS = colorTexture.wrapT = THREE.RepeatWrapping;
 colorTexture.repeat.set( 10, 10 );
 

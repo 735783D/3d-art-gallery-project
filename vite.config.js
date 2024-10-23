@@ -5,5 +5,5 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: "/3d-art-gallery-project/",
   plugins: [react()],
-  assetsInclude: ['**/*.glb']
+  assetsInclude: ['**/*.png', '**/*.jpg', '**/*.glb'],
 })
