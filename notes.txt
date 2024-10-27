@@ -27,4 +27,6 @@ export default defineConfig({
 npm run deploy
 
 
-Walkthrough video: https://www.youtube.com/watch?v=_AUAXlMBXyc 1:57:12
+Walkthrough video: https://www.youtube.com/watch?v=_AUAXlMBXyc 
+1:57:12
+3:57:18

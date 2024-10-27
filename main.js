@@ -61,15 +61,23 @@ floorPlane.rotation.x = Math.PI / 2;  // rotate the plane by 90 degrees around t
 floorPlane.position.y = -Math.PI;   // rotate the plane by 90 degrees around the x axis (z in Blender)
 scene.add(floorPlane);
 //----------------------------------------
+// const ceilingGeometry = new THREE.PlaneGeometry(50, 50); 
+// const ceilingMaterial = new THREE.MeshStandardMaterial({
+//     map: hotTexture,
+//     // color: 'red',
+//     side: THREE.DoubleSide,
+// });
+// const ceilingPlane = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
+// ceilingPlane.rotation.x = Math.PI / 2;  // rotate the plane by 90 degrees around the y axis (x in Blender)  
+// // ceilingPlane.rotation.y = Math.PI;
+// ceilingPlane.position.y = 10;   // rotate the plane by 90 degrees around the x axis (z in Blender)
+// scene.add(ceilingPlane);
+
+const ceilingTexture = textureLoader.load( './img/TAPE.png' );
 const ceilingGeometry = new THREE.PlaneGeometry(50, 50); 
-const ceilingMaterial = new THREE.MeshStandardMaterial({
-    map: hotTexture,
-    // color: 'red',
-    side: THREE.DoubleSide,
-});
+const ceilingMaterial = new THREE.MeshStandardMaterial({map: ceilingTexture, side: THREE.DoubleSide});
 const ceilingPlane = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
 ceilingPlane.rotation.x = Math.PI / 2;  // rotate the plane by 90 degrees around the y axis (x in Blender)  
-// ceilingPlane.rotation.y = Math.PI;
 ceilingPlane.position.y = 10;   // rotate the plane by 90 degrees around the x axis (z in Blender)
 scene.add(ceilingPlane);
 
@@ -123,7 +131,76 @@ for (let i = 0; i < wallGroup.children.length; i++) {
     wallGroup.children[i].BBox.setFromObject(wallGroup.children[i]);
 }
 
+function createPainting(imageURL, width, height, position) {
+    const textureLoader = new THREE.TextureLoader();
+    const paintingTexture = textureLoader.load(imageURL);
+    const ptintingMaterial = new THREE.MeshBasicMaterial({
+        map: paintingTexture,
+    });
+    const paintingGeometry = new THREE.PlaneGeometry(width, height);
+    const painting = new THREE.Mesh(paintingGeometry, ptintingMaterial);
+    painting.position.set(position.x, position.y, position.z);
+    return painting;
+}
+
+const painting1 = createPainting(
+    './artworks/finalGetsugaGrey.jpg', 
+    10, 
+    5, 
+    new THREE.Vector3(10, 5, -20)
+);
+const painting2 = createPainting(
+    './artworks/viduus.png', 
+    10, 
+    5, 
+    new THREE.Vector3(-10, 5, -20)
+);
+scene.add(painting1, painting2);
+
+// Controls
+const controls = new PointerLockControls(camera, document.body);
+
+// Lock the pointer (controls are activated) and hide the menu when the experience starts
+function startExperience() {
+    // Lock the pointer
+    controls.lock();
+    // Hide the menu
+    hideMenu();
+}
+
+const playButton = document.getElementById('play_button');
+playButton.addEventListener('click', startExperience);
+
+function hideMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = 'none';
+}
+
+// Show menu
+function showMenu() {
+    const menu = document.getElementById('menu');
+    menu.style.display = 'block';
+}
+
+controls.addEventListener('unlock', showMenu);
+
 // Functions for keys
+// function onKeyDown(event){
+//     let keyCode = event.which;
+//     // right arrow
+//     if (keyCode === 39 || keyCode === 68) {
+//         controls.moveRight(0.5);
+//     // left arrow
+//     } else if (keyCode === 37 || keyCode === 65) {
+//         controls.moveRight(-0.5);
+//     // up arrow
+//     } else if (keyCode === 38 || keyCode === 87) {
+//         controls.moveForward(0.5);
+//     // down arrow
+//     } else if (keyCode === 40 || keyCode === 83) {
+//         controls.moveForward(-0.5);
+//     }
+// }
 function onKeyDown(event) {
     switch(event.keyCode) {
         case 37: // left arrow
@@ -136,7 +213,7 @@ function onKeyDown(event) {
             camera.translateX(0.5);
             break;
         case 40: // down arrow
-            camera.translateY(0.5);
+            camera.translateZ(0.5);
             break;
     }
 }
