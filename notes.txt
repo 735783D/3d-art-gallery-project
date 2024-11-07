@@ -3,6 +3,7 @@ npm create vite@latest
 npm install
 npm install three
 npm install gh-pages --save-dev
+npm install lil-gui
 
 # package.json addendums
 "scripts": {
@@ -26,7 +27,10 @@ export default defineConfig({
 # Deploy to gh-pages to determine if it works or not
 npm run deploy
 
+# Web Server
+http-server -p 8080
 
 Walkthrough video: https://www.youtube.com/watch?v=_AUAXlMBXyc 
 1:57:12
 3:57:18
+
