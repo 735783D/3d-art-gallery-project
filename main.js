@@ -9,24 +9,31 @@ import { setupRendering } from "./modules/rendering";
 import { setupLighting } from "./modules/lighting";
 import { cubeTest } from "./modules/cubeTest";
 import { paintingTest } from "./modules/paintingTest"; 
+import { scene, setupScene } from "./modules/scene";
+import { setupEventListeners } from "./modules/eventListeners";
+import { setupPlayButton } from "./modules/menu";
+import { setupAudio } from "./modules/audioGuide";
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-    75, 
-    window.innerWidth / window.innerHeight, 
-    0.1, // near clipping plane
-    1000  // far clipping plane
-);
-scene.add(camera);
-camera.position.z = 5; // move camera away from the canvas by 5 units
+let { camera, controls, renderer } = setupScene();
+setupAudio(camera);
+
+// const scene = new THREE.Scene();
+// const camera = new THREE.PerspectiveCamera(
+//     75, 
+//     window.innerWidth / window.innerHeight, 
+//     0.1, // near clipping plane
+//     1000  // far clipping plane
+// );
+// scene.add(camera);
+// camera.position.z = 5; // move camera away from the canvas by 5 units
 
 // camera.position.y = 20;          // move camera up by 5 units
 // camera.rotateOnAxis(new THREE.Vector3(-.75, 0, 0), Math.PI / 2);  // rotate camera 90 degrees around y axis
 
-const renderer = new THREE.WebGLRenderer({antialias: false}); // for smooth edges
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0xffffff, 1); // background color
-document.body.appendChild(renderer.domElement); // add the renderer to the DOM
+// const renderer = new THREE.WebGLRenderer({antialias: false}); // for smooth edges
+// renderer.setSize(window.innerWidth, window.innerHeight);
+// renderer.setClearColor(0xffffff, 1); // background color
+// document.body.appendChild(renderer.domElement); // add the renderer to the DOM
 
 // Lights
 // ambient light
@@ -47,6 +54,7 @@ scene.add(cube);    // add the cube to the scene
 // Controls
 // Event listeners for the keys
 document.addEventListener('keydown', onKeyDown, false);
+// setupEventListeners(controls);
 
 
 
@@ -57,9 +65,11 @@ const ceiling = createCeiling(scene, textureLoader);
 const paintings = createPaintings(scene, textureLoader);
 const lighting = setupLighting(scene, paintings);
 addObjectsToScene(scene, paintings);
-setupRendering(scene, camera, renderer, paintings,  walls);
+setupRendering(scene, camera, renderer, paintings, controls, walls);
 const cubeTests = cubeTest(scene);
 const paintingTests = paintingTest(scene);
+setupPlayButton(controls);
+
 
 
 
@@ -92,7 +102,7 @@ const paintingTests = paintingTest(scene);
 // scene.add(painting1, painting2);
 
 // Controls
-const controls = new PointerLockControls(camera, document.body);
+// const controls = new PointerLockControls(camera, document.body);
 
 // Lock the pointer (controls are activated) and hide the menu when the experience starts
 function startExperience() {
