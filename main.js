@@ -29,11 +29,15 @@ scene.add(ambientLight);
 const sunLight = new THREE.DirectionalLight(0xdddddd, 1.0); //color and intensity
 sunLight.position.y = 15;
 scene.add(sunLight);
+ 
+
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshBasicMaterial({color: 'black'});
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);    // add the cube to the scene
+
+
 
 // Controls
 // Event listeners for the keys
@@ -80,6 +84,12 @@ const ceilingPlane = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
 ceilingPlane.rotation.x = Math.PI / 2;  // rotate the plane by 90 degrees around the y axis (x in Blender)  
 ceilingPlane.position.y = 10;   // rotate the plane by 90 degrees around the x axis (z in Blender)
 scene.add(ceilingPlane);
+
+const spotLight = new THREE.SpotLight(0xdddddd, 1.0); //color and intensity
+spotLight.position.set(0, 5, 0);
+spotLight.intensity = 100;
+spotLight.target = ceilingPlane;
+scene.add(spotLight);
 
 // Create the walls
 const wallGroup = new THREE.Group();
