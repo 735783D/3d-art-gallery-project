@@ -30,3 +30,173 @@ npm run deploy
 Walkthrough video: https://www.youtube.com/watch?v=_AUAXlMBXyc 
 1:57:12
 3:57:18
+
+
+### WORKING MAIN SCRIPT WITH RAMPS, FLOOR, AND WALLS
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+// Scene setup
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// OrbitControls setup
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1, 0); // Focus camera on player position
+controls.enableDamping = true; // Smooth camera movement
+controls.dampingFactor = 0.05;
+
+// Player setup
+const player = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshStandardMaterial({ color: 0x00ff00 })
+);
+scene.add(player);
+player.position.y = 1; // Set initial height
+
+// Light setup
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(10, 10, 10);
+scene.add(light);
+
+// Floor setup
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshStandardMaterial({ color: 0xaaaaaa })
+);
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
+
+// Ramp setup
+const ramp = new THREE.Mesh(
+  new THREE.BoxGeometry(5, 1, 10),
+  new THREE.MeshStandardMaterial({ color: 0x0000ff })
+);
+ramp.position.set(0, 0.5, -5);
+ramp.rotation.x = -Math.PI / 6; // Adjust angle as needed
+scene.add(ramp);
+
+// Wall setup
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, visible: true }); // Invisible walls
+const wallGeometry = new THREE.BoxGeometry(10, 5, 1);
+
+// Create walls
+const wall1 = new THREE.Mesh(wallGeometry, wallMaterial);
+wall1.position.set(0, 2.5, -8);
+scene.add(wall1);
+
+const wall2 = new THREE.Mesh(wallGeometry, wallMaterial);
+wall2.position.set(-5, 2.5, 0);
+wall2.rotation.y = Math.PI / 2;
+scene.add(wall2);
+
+const walls = [wall1, wall2]; // Group walls for collision detection
+
+// Player bounding box
+const playerBoundingBox = new THREE.Box3().setFromObject(player);
+
+// Raycaster for ramps
+const raycaster = new THREE.Raycaster();
+const downwardDirection = new THREE.Vector3(0, -1, 0); // Downward ray direction
+const rampObjects = [ramp]; // Objects to test for ramps
+
+// Movement controls
+const keys = {};
+
+// Handle keydown and keyup events
+window.addEventListener('keydown', (event) => {
+  keys[event.key] = true;
+});
+window.addEventListener('keyup', (event) => {
+  keys[event.key] = false;
+});
+
+// Function to check for collisions with walls
+function checkWallCollision(direction) {
+  playerBoundingBox.setFromObject(player); // Update bounding box
+  playerBoundingBox.translate(direction); // Predict movement
+
+  for (const wall of walls) {
+    const wallBoundingBox = new THREE.Box3().setFromObject(wall);
+    if (playerBoundingBox.intersectsBox(wallBoundingBox)) {
+      return true; // Collision detected
+    }
+  }
+  return false; // No collision
+}
+
+// Function to handle player movement
+const movementSpeed = 0.1;
+
+function handlePlayerMovement() {
+  const forward = keys['w'];
+  const backward = keys['s'];
+  const left = keys['a'];
+  const right = keys['d'];
+
+  let moveDirection = new THREE.Vector3();
+
+  if (forward) moveDirection.z -= movementSpeed;
+  if (backward) moveDirection.z += movementSpeed;
+  if (left) moveDirection.x -= movementSpeed;
+  if (right) moveDirection.x += movementSpeed;
+
+  if (moveDirection.length() > 0) {
+    if (!checkWallCollision(moveDirection)) {
+      player.position.add(moveDirection);
+    }
+  }
+}
+
+// Function to handle ramps using raycaster
+// function handleRampDetection() {
+//   raycaster.set(player.position, downwardDirection);
+//   const intersects = raycaster.intersectObjects(rampObjects);
+
+//   if (intersects.length > 0) {
+//     const closestIntersection = intersects[0];
+//     const rampHeight = closestIntersection.point.y;
+//     player.position.y = rampHeight + 0.5; // Adjust height to match ramp
+//   } else {
+//     player.position.y = 1; // Reset to floor level if no ramp
+//   }
+// }
+function handleRampAndFloorDetection() {
+    raycaster.set(player.position, downwardDirection);
+  
+    // Combine ramp and floor objects for detection
+    const objectsToTest = [...rampObjects, floor];
+    const intersects = raycaster.intersectObjects(objectsToTest);
+  
+    if (intersects.length > 0) {
+      // Sort by distance to prioritize the closest surface
+      intersects.sort((a, b) => a.distance - b.distance);
+  
+      // Set the player's height to the closest intersection point
+      const closestIntersection = intersects[0];
+      const surfaceHeight = closestIntersection.point.y;
+      player.position.y = surfaceHeight + 0.5; // Adjust height to match the surface
+    } else {
+      player.position.y = 1; // Default height for when no surface is detected
+    }
+  }
+  
+// Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+
+  handlePlayerMovement();
+//   handleRampDetection();
+  handleRampAndFloorDetection();
+
+  // Update camera controls
+  controls.update();
+
+  renderer.render(scene, camera);
+}
+
+camera.position.set(0, 5, 10); // Set initial camera position
+animate();
