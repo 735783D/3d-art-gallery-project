@@ -18,8 +18,6 @@ camera.position.z = 5; // move camera away from the canvas by 5 units
 // Movement controls
 const keys = {};
 
-
-
 // Handle keydown and keyup events
 window.addEventListener('keydown', (event) => {
   keys[event.key] = true;
@@ -145,15 +143,17 @@ wall2.rotation.y = Math.PI / 2;
 scene.add(wall2);
 
 const walls = [wall1, wall2]; // Group walls for collision detection
-// Ramp setup
-const ramp = new THREE.Mesh(
-    new THREE.BoxGeometry(5, 0.1, 20),
-    new THREE.MeshStandardMaterial({ color: 0x0000ff })
-  );
-  ramp.position.set(0, -1, -5);
-  ramp.rotation.x = -Math.PI / 6; // Adjust angle as needed
-  scene.add(ramp);
+// // Ramp setup
+// const ramp = new THREE.Mesh(
+//     new THREE.BoxGeometry(5, 0.1, 20),
+//     new THREE.MeshStandardMaterial({ color: 0x0000ff })
+//   );
+//   ramp.position.set(0, -1, -5);
+//   ramp.rotation.x = -Math.PI / 6; // Adjust angle as needed
+//   scene.add(ramp);
 
+import { createRamp } from './modules/ramp.js';
+const ramp = createRamp(scene, textureLoader);
   // Raycaster for ramps
 const raycaster = new THREE.Raycaster();
 const downwardDirection = new THREE.Vector3(0, -1, 0); // Downward ray direction
