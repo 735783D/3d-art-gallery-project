@@ -1,8 +1,9 @@
 //**********Wall collisions experiment*********
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
-import { floor } from 'three/tsl';
+import { floor, MeshStandardMaterial } from 'three/tsl';
 // import { loadStairsModel } from '../modules/stairs';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
 // Scene, Camera, Renderer
 const scene = new THREE.Scene();
@@ -14,12 +15,16 @@ renderer.setClearColor(0x000000, 1); // Sets the screen color's background
 document.body.appendChild(renderer.domElement);
 
 // Light
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(10, 10, 10);
-scene.add(directionalLight);
+// const directionalLight = new THREE.DirectionalLight(0xffffff, 0.25);
+// directionalLight.position.set(0, 100, 0);
+// scene.add(directionalLight);
+// scene.attach(directionalLight); // Ensures it's in the world and not moving with another object
+
+
+
 
 // Player (camera is treated as part of the player)
 const player = new THREE.Group();
@@ -28,7 +33,7 @@ player.add(camera); // Add the camera to the player group
 camera.position.set(0, 2, 0); // Start camera above ground level
 
 const collisionGeometry = new THREE.BoxGeometry(1,2,1); // Empty bounding box
-const collisionMaterial = new THREE.MeshStandardMaterial({ color: "red", visible: true, wireframe: true });
+const collisionMaterial = new THREE.MeshStandardMaterial({ color: "red", visible: false, wireframe: true });
 const collisionBox = new THREE.Mesh(collisionGeometry, collisionMaterial);
 player.add(collisionBox);
 
@@ -66,7 +71,7 @@ document.body.addEventListener('click', () => {
 });
 
 // Movement Variables
-const moveSpeed = 0.17;
+const moveSpeed = 0.16;
 const velocity = new THREE.Vector3();
 const keys = { forward: false, backward: false, left: false, right: false };
 
@@ -112,14 +117,53 @@ document.addEventListener('keyup', (event) => {
 
 
 // Create the floor geometry (a box for visualization purposes)
-var floorGeometry = new THREE.BoxGeometry(50, 0.1, 50); // A thin box as the floor
-var floorMaterial = new THREE.MeshStandardMaterial({ color: 'red', visible: true  });
+const matLoader = new THREE.TextureLoader();
+const floorTexture = matLoader.load( './img/old_wood_floor_diff_1k.jpg');
+const ceilingTexture = matLoader.load( './img/wooden_garage_door_diff_1k-Dark.jpg');
+const floorTextureMap = new THREE.MeshStandardMaterial({ map: 
+  floorTexture,
+  roughness: 1,
+  metalness: 1
+ });
 
-const floorPlane1 = new THREE.Mesh(floorGeometry, floorMaterial);
-const floorPlane2 = new THREE.Mesh(floorGeometry, floorMaterial);
-const floorPlane3 = new THREE.Mesh(floorGeometry, floorMaterial);
-const floorPlane4 = new THREE.Mesh(floorGeometry, floorMaterial);
-const floorPlane5 = new THREE.Mesh(floorGeometry, floorMaterial);
+const materials = [
+  new THREE.MeshStandardMaterial({ map: floorTexture }),  // Right (+X)
+  new THREE.MeshStandardMaterial({ map: floorTexture }),  // Left (-X)
+  new THREE.MeshStandardMaterial({ map: 
+    floorTexture,
+    roughness: 1,
+    metalness: 1
+   }), // Top (+Y)
+  new THREE.MeshStandardMaterial({ map: 
+    ceilingTexture,
+    roughness: 1,
+    metalness: 1 }),   // Bottom (-Y)
+  new THREE.MeshStandardMaterial({ map: floorTexture }),  // Front (+Z)
+  new THREE.MeshStandardMaterial({ map: floorTexture })   // Back (-Z)
+]
+floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+floorTexture.repeat.set( 10, 10 );
+ceilingTexture.wrapS = ceilingTexture.wrapT = THREE.RepeatWrapping;
+ceilingTexture.repeat.set( 3, 3 );
+
+var floorGeometry = new THREE.BoxGeometry(50, 0.1, 50); // A thin box as the floor
+// var floorMaterial = new THREE.MeshStandardMaterial({ color: 'red', visible: true  });
+const floorMaterial = new THREE.MeshStandardMaterial({
+  map: floorTexture,
+  side: THREE.DoubleSide
+})
+
+// const floorPlane1 = new THREE.Mesh(floorGeometry, floorMaterial);
+// const floorPlane2 = new THREE.Mesh(floorGeometry, floorMaterial);
+// const floorPlane3 = new THREE.Mesh(floorGeometry, floorMaterial);
+// const floorPlane4 = new THREE.Mesh(floorGeometry, floorMaterial);
+// const floorPlane5 = new THREE.Mesh(floorGeometry, floorMaterial);
+
+const floorPlane1 = new THREE.Mesh(floorGeometry, materials);
+const floorPlane2 = new THREE.Mesh(floorGeometry, materials);
+const floorPlane3 = new THREE.Mesh(floorGeometry, materials);
+const floorPlane4 = new THREE.Mesh(floorGeometry, materials);
+const floorPlane5 = new THREE.Mesh(floorGeometry, materials);
 floorPlane1.position.set(0, 0, 0);
 floorPlane2.position.set(0, 15, 0);
 floorPlane3.position.set(0, 30, 0);
@@ -180,53 +224,75 @@ scene.add(
 
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-// Add a light for the staricase
-const light1 = new THREE.DirectionalLight(0xffffff, 1);
-light1.position.set(27.5, 10, -10); // Position the light
-light1.rotation.x = -Math.PI / 6;
-scene.add(light1);
+const pointyLight = new THREE.PointLight(0xffffff, 1000);
+pointyLight.position.set(0, 5, 0);
+scene.add(pointyLight);
 
-// Add a light for the staricase
-const light2 = new THREE.DirectionalLight(0xffffff, 1);
-light2.position.set(0, 10, 0); // Position the light
-light2.rotation.z = -Math.PI;
-scene.add(light2);
+const areaLight = new THREE.RectAreaLight(0xffffff, 1000);
+areaLight.position.set(0, 5, 0);
+areaLight.lookAt(0, 0, 0);
+scene.add(areaLight);
+
+areaLight.rotation.x = -Math.PI / 3;
+
+// // Add a light for the staricase
+// const light1 = new THREE.DirectionalLight(0xffffff, 0.01);
+// light1.position.set(0, 10, 0); // Position the light
+// light1.rotation.x = -Math.PI / 6;
+// scene.add(light1);
+
+// console.log("Light Parent:", light1.parent);
+// console.log("Light Position:", light1.position);
+// light1.castShadow = false;
 
 
 
-// Add a helper for the light
-const lightHelper = new THREE.DirectionalLightHelper(light2, 5);
-scene.add(lightHelper);
+// // Add a light for the staricase
+// const light2 = new THREE.DirectionalLight(0xffffff, 1);
+// light2.position.set(0, 10, 0); // Position the light
+// light2.rotation.z = -Math.PI;
+// scene.add(light2);
+
+// const spotlightTest = new THREE.SpotLight(0xffffff, 1);
+// spotlightTest.position.set(0, 10, 0); // Position the light
+// spotlightTest.rotation.z = -Math.PI/2;
+// scene.add(spotlightTest);
 
 
-document.addEventListener('keydown', (event) => {
-  if (event.shiftKey) { // Light control only when Shift is held
-    switch (event.code) {
-      case 'ArrowUp':
-        light1.position.y += 1;
-        console.log(`Light position: ${light2.position.toArray()}`);
-        break;
-      case 'ArrowDown':
-        light2.position.y -= 1;
-        console.log(`Light position: ${light2.position.toArray()}`);
-        break;
-      case 'ArrowLeft':
-        light2.position.x -= 1;
-        console.log(`Light position: ${light2.position.toArray()}`);
-        break;
-      case 'ArrowRight':
-        light2.position.x += 1;
-        console.log(`Light position: ${light2.position.toArray()}`);
-        break;
-    }
-    updateLightHelper(); // Refresh the helper position
-  }
-});
 
-// Function to refresh the light helper
-function updateLightHelper() {
-  lightHelper.update(); // Updates the helper to reflect the current light direction
-}
+// // Add a helper for the light
+// const lightHelper = new THREE.DirectionalLightHelper(light2, 5);
+// scene.add(lightHelper);
+
+
+// document.addEventListener('keydown', (event) => {
+//   if (event.shiftKey) { // Light control only when Shift is held
+//     switch (event.code) {
+//       case 'ArrowUp':
+//         light1.position.y += 1;
+//         console.log(`Light position: ${light2.position.toArray()}`);
+//         break;
+//       case 'ArrowDown':
+//         light2.position.y -= 1;
+//         console.log(`Light position: ${light2.position.toArray()}`);
+//         break;
+//       case 'ArrowLeft':
+//         light2.position.x -= 1;
+//         console.log(`Light position: ${light2.position.toArray()}`);
+//         break;
+//       case 'ArrowRight':
+//         light2.position.x += 1;
+//         console.log(`Light position: ${light2.position.toArray()}`);
+//         break;
+//     }
+//     updateLightHelper(); // Refresh the helper position
+//   }
+// });
+
+// // Function to refresh the light helper
+// function updateLightHelper() {
+//   lightHelper.update(); // Updates the helper to reflect the current light direction
+// }
 
 
 // Create a GLTFLoader instance
@@ -267,21 +333,46 @@ const loader = new GLTFLoader();
 // );
 // loadStairsModel(scene);
 
-// Walls
-var wallGeometry = new THREE.BoxGeometry(0.1, 50, 50);
+// Walls (Primary)
+var wallGeometry = new THREE.BoxGeometry(0.1, 75, 50);
+var wallGeometry2 = new THREE.BoxGeometry(0.1, 75, 55);
 var wallMaterial = new THREE.MeshStandardMaterial({ color: "green", visible: true });
 
 const wall1 = new THREE.Mesh(wallGeometry, wallMaterial);
-const wall2 = new THREE.Mesh(wallGeometry, wallMaterial);
-const wall3 = new THREE.Mesh(wallGeometry, wallMaterial);
-wall1.position.set(30, 12.5, 0);
-wall2.position.set(2.5, 12.5, -25);
+const wall2 = new THREE.Mesh(wallGeometry2, wallMaterial);
+const wall3 = new THREE.Mesh(wallGeometry2, wallMaterial);
+const wall4 = new THREE.Mesh(wallGeometry, wallMaterial);
+wall1.position.set(30, 37.5, 0);
+wall2.position.set(2.5, 37.5, -25);
 wall2.rotation.y = Math.PI / 2;
-wall3.position.set(0, 12.5, -3);
+wall3.position.set(2.5, 37.5, 25);
 wall3.rotation.y = Math.PI / 2;
+wall4.position.set(-25, 37.5, 0);
+
+// Walls (Secondary)
+const wall5Geo = new THREE.BoxGeometry(0.1, 75, 26);
+const wall5 = new THREE.Mesh(wall5Geo, wallMaterial);
+wall5.position.set(25, 37.5, -7);
+
+const wall6Geo = new THREE.BoxGeometry(0.1, 75, 5);
+const wall6 = new THREE.Mesh(wall6Geo, wallMaterial);
+wall6.position.set(27.5, 37.5, 11);
+wall6.rotation.y = Math.PI / 2;
+
+const wall7Geo = new THREE.BoxGeometry(0.1, 75, 14);
+const wall7 = new THREE.Mesh(wall7Geo, wallMaterial);
+wall7.position.set(25, 37.5, 18);
+
+const wall8Geo = new THREE.BoxGeometry(0.1, 15, 5);
+const wall8 = new THREE.Mesh(wall8Geo, wallMaterial);
+wall8.position.set(25, 7.5, 8.5);
+
+const wall9Geo = new THREE.BoxGeometry(0.1, 15, 5);
+const wall9 = new THREE.Mesh(wall9Geo, wallMaterial);
+wall9.position.set(25, 67.5, -22.5);
 
 const wallGroup = new THREE.Group();
-wallGroup.add(wall1, wall2);
+wallGroup.add(wall1, wall2, wall3, wall4, wall5, wall6, wall7, wall8, wall9);
 scene.add(wallGroup);
 
 // Wall Collisions
@@ -346,7 +437,7 @@ function checkCollision(player, wallGroup) {
 
 // Create the ramps
 var rampGeometry = new THREE.BoxGeometry(5, 0.1, 30);
-var rampMaterial = new THREE.MeshStandardMaterial({ color: 'blue', visible: false  });
+var rampMaterial = new THREE.MeshStandardMaterial({ color: 'blue', visible: true  });
 
 const ramp1 = new THREE.Mesh(rampGeometry, rampMaterial);
 const ramp2 = new THREE.Mesh(rampGeometry, rampMaterial);
